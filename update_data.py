@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 """
 update_data.py — 每天由 GitHub Actions 執行
-1. 抓 RSS 新聞（市場、全球、科技、影視）
-2. 呼叫 Claude API 取得股市、外匯資料
-3. 翻譯新聞標題成繁體中文
-4. 寫入 dashboard-data.json
+使用經過驗證的 RSS feed 網址
 """
 
 import os, json, requests, feedparser
@@ -19,25 +16,33 @@ HEADERS = {
 }
 TW_TZ = timezone(timedelta(hours=8))
 
+# ── 經過驗證的 RSS 來源 ──────────────────────────────────────
 RSS_FEEDS = [
-    # 欄1：市場 & 商業
-    {"col": "markets", "src": "Reuters",      "key": "reuters",    "url": "https://feeds.reuters.com/reuters/businessNews", "limit": 3},
-    {"col": "markets", "src": "CNN Business", "key": "cnn",        "url": "https://rss.cnn.com/rss/money_latest.rss",       "limit": 2},
-    # 欄2：全球 & 總經
-    {"col": "world",   "src": "Reuters",      "key": "reuters",    "url": "https://feeds.reuters.com/Reuters/worldNews",    "limit": 3},
-    {"col": "world",   "src": "BBC World",    "key": "bbc",        "url": "https://feeds.bbci.co.uk/news/world/rss.xml",    "limit": 2},
-    # 欄3：科技 & 產業
-    {"col": "tech",    "src": "TechCrunch",   "key": "techcrunch", "url": "https://techcrunch.com/feed/",                   "limit": 3},
-    {"col": "tech",    "src": "VentureBeat",  "key": "vb",         "url": "https://venturebeat.com/feed/",                  "limit": 2},
-    # 欄4：影視 & 娛樂
-    {"col": "entertainment", "src": "Hollywood Reporter", "key": "thr",     "url": "https://www.hollywoodreporter.com/feed/", "limit": 3},
-    {"col": "entertainment", "src": "Variety",            "key": "variety", "url": "https://variety.com/feed/",               "limit": 2},
+    # 欄1：市場 & 商業（AP + CNBC + BBC）
+    {"col": "markets", "src": "AP Business", "key": "ap",   "url": "https://feeds.apnews.com/rss/apf-business",                          "limit": 2},
+    {"col": "markets", "src": "CNBC",        "key": "cnbc", "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html",               "limit": 2},
+    {"col": "markets", "src": "BBC Business","key": "bbc",  "url": "https://feeds.bbci.co.uk/news/business/rss.xml",                     "limit": 2},
+
+    # 欄2：全球 & 總經（AP + BBC World）
+    {"col": "world",   "src": "AP World",    "key": "ap",   "url": "https://feeds.apnews.com/rss/apf-worldnews",                         "limit": 3},
+    {"col": "world",   "src": "BBC World",   "key": "bbc",  "url": "https://feeds.bbci.co.uk/news/world/rss.xml",                        "limit": 2},
+
+    # 欄3：科技 & 產業（TechCrunch + VentureBeat + Wired）
+    {"col": "tech",    "src": "TechCrunch",  "key": "techcrunch","url": "https://techcrunch.com/feed/",                                   "limit": 2},
+    {"col": "tech",    "src": "VentureBeat", "key": "vb",        "url": "https://venturebeat.com/feed/",                                  "limit": 2},
+    {"col": "tech",    "src": "Wired",       "key": "wired",     "url": "https://www.wired.com/feed/rss",                                 "limit": 2},
+
+    # 欄4：影視 & 娛樂（Deadline + Hollywood Reporter + Variety）
+    {"col": "entertainment", "src": "Deadline",            "key": "deadline", "url": "https://deadline.com/feed/",                        "limit": 2},
+    {"col": "entertainment", "src": "Hollywood Reporter",  "key": "thr",      "url": "https://www.hollywoodreporter.com/feed/",            "limit": 2},
+    {"col": "entertainment", "src": "Variety",             "key": "variety",  "url": "https://variety.com/feed/",                          "limit": 2},
 ]
 
 MAX_PER_COL = 5
 
 def fetch_rss():
     cols = {"markets": [], "world": [], "tech": [], "entertainment": []}
+    feedparser.USER_AGENT = "Mozilla/5.0 (compatible; DashboardBot/1.0)"
     for feed in RSS_FEEDS:
         col = feed["col"]
         if len(cols[col]) >= MAX_PER_COL:
@@ -48,15 +53,18 @@ def fetch_rss():
             for entry in d.entries:
                 if len(cols[col]) >= MAX_PER_COL or added >= feed["limit"]:
                     break
+                title = entry.get("title", "").strip()
+                if not title:
+                    continue
                 cols[col].append({
                     "src":   feed["src"],
                     "key":   feed["key"],
-                    "title": entry.get("title", "").strip(),
+                    "title": title,
                     "link":  entry.get("link", ""),
                     "date":  entry.get("published", ""),
                 })
                 added += 1
-            print(f"  ✓ {feed['src']} ({col}): {added} items")
+            print(f"  {'✓' if added > 0 else '✗'} {feed['src']} ({col}): {added} items")
         except Exception as e:
             print(f"  ✗ {feed['src']}: {e}")
     return cols
@@ -142,6 +150,8 @@ def main():
 
     print("[1/3] Fetching RSS feeds...")
     news_cols = fetch_rss()
+    for col, items in news_cols.items():
+        print(f"  → {col}: {len(items)} items total")
 
     print("\n[2/3] Fetching market data...")
     try:
@@ -172,7 +182,7 @@ def main():
     with open("dashboard-data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Done.")
+    print(f"\n✅ Done. dashboard-data.json updated.")
     for col, items in output["news"].items():
         print(f"   news/{col}: {len(items)} items")
 
