@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>世界財經看板</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:#f5f0e8; --surface:#faf7f2; --surface2:#ede9df;
+  --border:#d4cfc4; --ink:#1a1612; --ink2:#3d3730;
+  --muted:#8c8278; --accent:#c4380a; --up:#1a5c3a; --down:#c4380a; --rule:#cdc8bc;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Serif TC',serif;min-height:100vh;}
+.page{max-width:1500px;margin:0 auto;padding:32px 28px 48px;}
+
+/* MASTHEAD */
+.masthead{text-align:center;border-top:3px double var(--ink);border-bottom:3px double var(--ink);padding:20px 0 16px;}
+.masthead-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:5px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+.masthead h1{font-size:52px;font-weight:700;letter-spacing:-1px;line-height:1;}
+.masthead h1 .red{color:var(--accent);}
+.masthead-meta{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--rule);font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+
+/* TICKER */
+.ticker-band{background:var(--ink);overflow:hidden;padding:9px 0;}
+.ticker-inner{display:flex;gap:52px;white-space:nowrap;animation:scroll 50s linear infinite;font-family:'DM Mono',monospace;font-size:12px;}
+.ticker-inner:hover{animation-play-state:paused;}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.t-item{display:flex;gap:8px;align-items:center;}
+.t-label{color:rgba(255,255,255,0.45);}
+.t-val{color:#fff;}
+.t-up{color:#5dde8a;}
+.t-dn{color:#ff8c7a;}
+
+/* STATUS */
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--rule);font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;display:inline-block;margin-right:7px;}
+.dot.live{background:var(--up);}
+.dot.stale{background:#e8a020;}
+.dot.err{background:var(--down);}
+
+/* MARKET ROW */
+.market-row{display:grid;grid-template-columns:1fr 1px 1fr;border-bottom:1px solid var(--rule);}
+.col-rule{background:var(--rule);margin:24px 0;}
+.col{padding:22px 26px;}
+
+/* SECTION HEAD */
+.sec-head{margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--ink);}
+.sec-kicker{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:4px;}
+.sec-title{font-size:22px;font-weight:700;}
+
+/* STOCKS */
+.region{margin-bottom:14px;}
+.region:last-child{margin-bottom:0;}
+.region-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--rule);margin-bottom:8px;}
+.idx-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px dotted var(--rule);}
+.idx-row:last-child{border-bottom:none;}
+.idx-name{font-size:15px;font-weight:600;color:var(--ink2);}
+.idx-sub{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.idx-right{text-align:right;}
+.idx-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;}
+.idx-chg{font-family:'DM Mono',monospace;font-size:12px;margin-top:2px;}
+.up{color:var(--up);} .dn{color:var(--down);} .neu{color:var(--muted);}
+
+/* FX */
+.fx-table{width:100%;border-collapse:collapse;}
+.fx-table thead tr{border-bottom:2px solid var(--ink);}
+.fx-table th{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding:0 0 8px;font-weight:400;text-align:left;}
+.fx-table th.r{text-align:right;}
+.fx-table td{padding:9px 0;border-bottom:1px dotted var(--rule);vertical-align:middle;}
+.fx-table tr:last-child td{border-bottom:none;}
+.fx-pair{font-weight:700;font-family:'DM Mono',monospace;font-size:14px;}
+.fx-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.fx-rate{text-align:right;font-family:'DM Mono',monospace;font-size:16px;font-weight:500;}
+.fx-chg{text-align:right;font-family:'DM Mono',monospace;font-size:12px;padding-left:10px;}
+
+/* NEWS 4-COL */
+.news-row{border-bottom:1px solid var(--rule);padding:22px 26px;}
+.news-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:0;}
+.news-col{padding:0 22px;border-right:1px solid var(--rule);}
+.news-col:first-child{padding-left:0;}
+.news-col:last-child{border-right:none;padding-right:0;}
+
+/* Column head — bigger and bolder */
+.news-col-head{
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  letter-spacing:3px;
+  color:var(--ink2);
+  font-weight:500;
+  text-transform:uppercase;
+  padding-bottom:10px;
+  border-bottom:2px solid var(--ink);
+  margin-bottom:14px;
+}
+
+/* NEWS ITEMS */
+.news-item{padding:11px 0;border-bottom:1px dotted var(--rule);}
+.news-item:last-child{border-bottom:none;}
+.news-item a{text-decoration:none;color:inherit;display:block;}
+.news-item a:hover .news-hl{color:var(--accent);}
+.news-badge{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#fff;padding:2px 7px;margin-bottom:6px;font-weight:500;}
+.src-reuters{background:#e8650a;} .src-cnn{background:#cc0000;} .src-bbc{background:#bb1919;}
+.src-techcrunch{background:#0d7a3e;} .src-vb{background:#2d6a4f;}
+.src-ap{background:#c8102e;} .src-cnbc{background:#0a6abf;}
+.src-reuters{background:#e8650a;} .src-bbc{background:#bb1919;}
+.src-wsj{background:#2a2a2a;} .src-ft{background:#c9a227;color:#111;}
+.src-bloomberg{background:#1a1a1a;}
+.src-techcrunch{background:#0d7a3e;} .src-vb{background:#2d6a4f;} .src-wired{background:#111;}
+.src-thr{background:#8b1a1a;} .src-variety{background:#4a1a6a;} .src-deadline{background:#2a2a5a;}
+.src-goldman{background:#1a3a6a;} .src-taicca{background:#a63200;} .src-other{background:#666;}
+.news-hl{font-size:14px;line-height:1.55;font-weight:600;color:var(--ink);margin-bottom:3px;transition:color 0.15s;}
+.news-hl-en{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;line-height:1.4;margin-bottom:3px;}
+.news-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+
+/* SOURCES */
+.sources-section{border-bottom:2px solid var(--ink);padding:22px 26px;}
+.sources-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:16px;}
+.sources-col{padding-right:26px;border-right:1px solid var(--rule);}
+.sources-col:last-child{border-right:none;padding-right:0;padding-left:26px;}
+.sources-col:nth-child(2){padding:0 26px;}
+.sources-col-head{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--rule);margin-bottom:10px;}
+.src-link{display:block;font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);text-decoration:none;padding:5px 0;border-bottom:1px dotted var(--rule);transition:color 0.15s;}
+.src-link:last-child{border-bottom:none;}
+.src-link:hover{color:var(--accent);}
+.src-link span{color:var(--muted);font-size:10px;margin-left:6px;}
+
+/* BOTTOM */
+.bottom{padding-top:16px;margin-top:4px;display:flex;justify-content:space-between;align-items:center;gap:20px;border-top:2px solid var(--ink);}
+.bottom-note{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);line-height:1.7;}
+
+/* SKELETON */
+.skel{background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:300% 100%;animation:shimmer 1.5s infinite;border-radius:2px;display:block;}
+@keyframes shimmer{0%{background-position:300% 0}100%{background-position:-300% 0}}
+.sl{height:13px;margin-bottom:9px;} .sl.s{width:50%} .sl.m{width:72%} .sl.f{width:100%}
+.empty{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);padding:12px 0;}
+
+@media(max-width:1100px){
+  .news-grid{grid-template-columns:repeat(2,1fr);}
+  .news-col{padding:16px 16px 0 0;border-right:none;border-bottom:1px solid var(--rule);}
+  .news-col:nth-child(even){padding-left:16px;}
+}
+@media(max-width:800px){
+  .market-row,.news-grid,.sources-grid{grid-template-columns:1fr;}
+  .col-rule,.news-col,.sources-col{border-right:none;padding:16px 0;border-bottom:1px solid var(--rule);}
+  .masthead h1{font-size:34px;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="masthead">
+    <div class="masthead-eyebrow">Global Intelligence Dashboard</div>
+    <h1>世界<span class="red">財經</span>看板</h1>
+    <div class="masthead-meta">
+      <span id="dateStr">—</span>
+      <span>股市 · 外匯 · 財經 · 科技 · 影視</span>
+      <span id="clock">--:--:--</span>
+    </div>
+  </div>
+
+  <div class="ticker-band">
+    <div class="ticker-inner" id="tickerInner">
+      <div class="t-item"><span class="t-label">載入中</span><span class="t-val">—</span></div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div style="display:flex;align-items:center;">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusMsg">讀取資料中...</span>
+    </div>
+    <span id="dataUpdatedAt">—</span>
+  </div>
+
+  <!-- 股市 + 外匯 -->
+  <div class="market-row">
+    <div class="col">
+      <div class="sec-head">
+        <div class="sec-kicker">Stock Markets</div>
+        <div class="sec-title">主要股市指數</div>
+      </div>
+      <div id="stockContent">
+        <div class="sl f skel"></div><div class="sl m skel"></div>
+        <div class="sl f skel"></div><div class="sl m skel"></div>
+        <div class="sl f skel"></div><div class="sl s skel"></div>
+      </div>
+    </div>
+    <div class="col-rule"></div>
+    <div class="col">
+      <div class="sec-head">
+        <div class="sec-kicker">Foreign Exchange &amp; Commodities</div>
+        <div class="sec-title">外匯與大宗商品</div>
+      </div>
+      <div id="fxContent">
+        <div class="sl f skel"></div><div class="sl m skel"></div>
+        <div class="sl f skel"></div><div class="sl m skel"></div>
+        <div class="sl f skel"></div><div class="sl m skel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新聞 4 欄 -->
+  <div class="news-row">
+    <div class="sec-head">
+      <div class="sec-kicker">Live News · RSS Feeds</div>
+      <div class="sec-title">即時新聞摘要</div>
+    </div>
+    <div class="news-grid">
+      <div class="news-col">
+        <div class="news-col-head">市場 &amp; 商業</div>
+        <div id="news-markets"><div class="sl f skel"></div><div class="sl m skel"></div></div>
+      </div>
+      <div class="news-col">
+        <div class="news-col-head">全球 &amp; 總經</div>
+        <div id="news-world"><div class="sl f skel"></div><div class="sl m skel"></div></div>
+      </div>
+      <div class="news-col">
+        <div class="news-col-head">科技 &amp; 產業</div>
+        <div id="news-tech"><div class="sl f skel"></div><div class="sl m skel"></div></div>
+      </div>
+      <div class="news-col">
+        <div class="news-col-head">影視 &amp; 娛樂</div>
+        <div id="news-entertainment"><div class="sl f skel"></div><div class="sl m skel"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 研究資料來源 -->
+  <div class="sources-section">
+    <div class="sec-head" style="margin-bottom:0;border-bottom:2px solid var(--ink);padding-bottom:10px;">
+      <div class="sec-kicker">Research &amp; Reference</div>
+      <div class="sec-title">研究資料來源</div>
+    </div>
+    <div class="sources-grid">
+      <div class="sources-col">
+        <div class="sources-col-head">每日 Daily</div>
+        <a href="https://www.reuters.com/business/" target="_blank" class="src-link">Reuters Business <span>reuters.com</span></a>
+        <a href="https://edition.cnn.com/markets" target="_blank" class="src-link">CNN Markets <span>cnn.com</span></a>
+        <a href="https://www.bbc.com/business" target="_blank" class="src-link">BBC Business <span>bbc.com</span></a>
+        <a href="https://www.reuters.com/world/" target="_blank" class="src-link">Reuters World <span>reuters.com</span></a>
+        <a href="https://techcrunch.com/" target="_blank" class="src-link">TechCrunch <span>techcrunch.com</span></a>
+        <a href="https://venturebeat.com/" target="_blank" class="src-link">VentureBeat <span>venturebeat.com</span></a>
+        <a href="https://www.businessweekly.com.tw/" target="_blank" class="src-link">商業周刊 <span>businessweekly.com.tw</span></a>
+        <a href="https://www.hollywoodreporter.com/" target="_blank" class="src-link">Hollywood Reporter <span>hollywoodreporter.com</span></a>
+        <a href="https://variety.com/" target="_blank" class="src-link">Variety <span>variety.com</span></a>
+      </div>
+      <div class="sources-col">
+        <div class="sources-col-head">產業研究 Industry Research</div>
+        <a href="https://www.goldmansachs.com/insights/" target="_blank" class="src-link">Goldman Sachs Reports <span>goldmansachs.com</span></a>
+        <a href="https://www.goldmansachs.com/insights/the-markets" target="_blank" class="src-link">Goldman · The Markets <span>podcast</span></a>
+        <a href="https://www.goldmansachs.com/insights/macroeconomics" target="_blank" class="src-link">Goldman · Macroeconomics <span>newsletter</span></a>
+        <a href="https://www.weforum.org/" target="_blank" class="src-link">World Economic Forum <span>weforum.org</span></a>
+        <a href="https://www.cfr.org/" target="_blank" class="src-link">Council on Foreign Relations <span>cfr.org</span></a>
+        <a href="https://www.pwc.tw/zh/publications.html" target="_blank" class="src-link">PwC Taiwan 出版品 <span>pwc.tw</span></a>
+        <a href="https://research.taicca.tw/" target="_blank" class="src-link">TAICCA 文創研究資料庫 <span>taicca.tw</span></a>
+      </div>
+      <div class="sources-col">
+        <div class="sources-col-head">月度／年度 Monthly &amp; Yearly</div>
+        <a href="https://pages.mckinsey.com/GEI-report.html" target="_blank" class="src-link">McKinsey GEI Report <span>mckinsey.com</span></a>
+        <a href="https://www.imf.org/en/publications/weo" target="_blank" class="src-link">IMF World Economic Outlook <span>imf.org</span></a>
+        <a href="https://www.goldmansachs.com/insights/outlooks/2026-outlooks" target="_blank" class="src-link">Goldman Sachs 2026 Outlooks <span>goldmansachs.com</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom" style="margin-top:16px;">
+    <div class="bottom-note">
+      新聞來源：AP · CNBC · BBC · TechCrunch · VentureBeat · Wired · Deadline · Variety · Hollywood Reporter<br>
+      資料每日台灣時間 09:00 自動更新。亦可手動觸發。僅供資訊參考，不構成投資建議。
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
+      <button class="refresh-btn" id="triggerBtn" onclick="triggerUpdate()">⟳ 立即更新</button>
+      <div id="refreshNote" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:right;max-width:220px;line-height:1.5;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GitHub Token Modal -->
+<div id="tokenModal" style="display:none;position:fixed;inset:0;background:rgba(26,22,18,0.88);align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);">
+  <div style="background:var(--surface);border:2px solid var(--ink);padding:40px;max-width:520px;width:92%;">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">設定 GitHub Token</h2>
+    <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;margin-bottom:20px;">
+      手動觸發更新需要 GitHub Personal Access Token。<br>
+      只需設定一次，儲存在瀏覽器本地。
+    </p>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">GitHub 帳號名稱</div>
+    <input id="ghUser" type="text" placeholder="例：Winnie3721"
+      style="width:100%;padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;background:var(--surface2);border:1px solid var(--border);color:var(--ink);outline:none;margin-bottom:10px;" />
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Repository 名稱</div>
+    <input id="ghRepo" type="text" placeholder="例：2026-finance-dashboard"
+      style="width:100%;padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;background:var(--surface2);border:1px solid var(--border);color:var(--ink);outline:none;margin-bottom:10px;" />
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Personal Access Token</div>
+    <input id="ghToken" type="password" placeholder="github_pat_..."
+      style="width:100%;padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;background:var(--surface2);border:1px solid var(--border);color:var(--ink);outline:none;margin-bottom:14px;" />
+    <div id="tokenErr" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--down);margin-bottom:10px;display:none;"></div>
+    <button onclick="saveTokenAndTrigger()"
+      style="width:100%;padding:12px;background:var(--ink);color:var(--bg);border:none;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:background 0.15s;"
+      onmouseover="this.style.background='#c4380a'" onmouseout="this.style.background='#1a1612'">
+      儲存並觸發更新
+    </button>
+    <button onclick="closeTokenModal()"
+      style="width:100%;padding:10px;background:transparent;color:var(--muted);border:1px solid var(--rule);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;margin-top:8px;">
+      取消
+    </button>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:14px;line-height:1.8;">
+      申請 Token：<a href="https://github.com/settings/tokens/new?scopes=workflow&description=finance-dashboard" target="_blank" style="color:var(--accent);">github.com/settings/tokens/new</a><br>
+      權限只需勾選 <strong>workflow</strong>，Expiration 可選 No expiration。
+    </div>
+  </div>
+</div>
+
+<script>
+function tick(){
+  const tw=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+  document.getElementById('clock').textContent=tw.toTimeString().slice(0,8);
+  document.getElementById('dateStr').textContent=
+    tw.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+}
+setInterval(tick,1000); tick();
+
+const srcStyles={
+  ap:{cls:'src-ap',label:'AP'},
+  reuters:{cls:'src-reuters',label:'Reuters'},
+  cnbc:{cls:'src-cnbc',label:'CNBC'},
+  bbc:{cls:'src-bbc',label:'BBC'},
+  wsj:{cls:'src-wsj',label:'WSJ'},
+  ft:{cls:'src-ft',label:'FT'},
+  bloomberg:{cls:'src-bloomberg',label:'Bloomberg'},
+  techcrunch:{cls:'src-techcrunch',label:'TechCrunch'},
+  vb:{cls:'src-vb',label:'VentureBeat'},
+  wired:{cls:'src-wired',label:'Wired'},
+  thr:{cls:'src-thr',label:'Hollywood Reporter'},
+  variety:{cls:'src-variety',label:'Variety'},
+  deadline:{cls:'src-deadline',label:'Deadline'},
+  goldman:{cls:'src-goldman',label:'Goldman Sachs'},
+  taicca:{cls:'src-taicca',label:'TAICCA'},
+  other:{cls:'src-other',label:'News'},
+};
+
+function cc(v){if(!v)return'neu';return String(v).startsWith('-')?'dn':'up';}
+function arrow(v){if(!v)return'';return String(v).startsWith('-')?'▼ ':'▲ ';}
+
+function timeAgo(dateStr){
+  if(!dateStr)return'';
+  const diff=(Date.now()-new Date(dateStr))/1000/60;
+  if(diff<60)return Math.round(diff)+' 分鐘前';
+  if(diff<1440)return Math.round(diff/60)+' 小時前';
+  return Math.round(diff/1440)+' 天前';
+}
+
+function renderStocks(stocks){
+  if(!stocks||!Object.keys(stocks).length){
+    document.getElementById('stockContent').innerHTML='<div class="empty">資料更新中，請稍候</div>';
+    return [];
+  }
+  const regions=[
+    {label:'美洲 Americas',items:[{k:'sp500',name:'S&P 500',sub:'美國大型股'},{k:'nasdaq',name:'NASDAQ',sub:'科技指數'},{k:'dow',name:'Dow Jones',sub:'道瓊工業'}]},
+    {label:'亞太 Asia-Pacific',items:[{k:'twii',name:'台灣加權',sub:'TWII'},{k:'nikkei',name:'日經 225',sub:'Nikkei 225'},{k:'hsi',name:'恆生指數',sub:'Hang Seng'},{k:'kospi',name:'韓國綜合',sub:'KOSPI'}]},
+    {label:'歐洲 Europe',items:[{k:'dax',name:'DAX',sub:'德國'},{k:'ftse',name:'FTSE 100',sub:'英國'}]},
+  ];
+  document.getElementById('stockContent').innerHTML=regions.map(r=>`
+    <div class="region">
+      <div class="region-label">${r.label}</div>
+      ${r.items.map(i=>{
+        const d=stocks[i.k]||{};
+        return`<div class="idx-row">
+          <div><div class="idx-name">${i.name}</div><div class="idx-sub">${i.sub}</div></div>
+          <div class="idx-right">
+            <div class="idx-val">${d.val||'—'}</div>
+            <div class="idx-chg ${cc(d.chg)}">${arrow(d.chg)}${d.chg||'—'}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+  return [{l:'S&P 500',k:'sp500'},{l:'NASDAQ',k:'nasdaq'},{l:'DOW',k:'dow'},{l:'台加權',k:'twii'},{l:'日經',k:'nikkei'}]
+    .map(t=>({label:t.l,val:(stocks[t.k]||{}).val||'—',chg:(stocks[t.k]||{}).chg||''}));
+}
+
+function renderFX(fx){
+  if(!fx||!Object.keys(fx).length){
+    document.getElementById('fxContent').innerHTML='<div class="empty">資料更新中，請稍候</div>';
+    return null;
+  }
+  const pairs=[
+    {k:'usdtwd',pair:'USD / TWD',desc:'美元 / 新台幣'},
+    {k:'eurusd',pair:'EUR / USD',desc:'歐元 / 美元'},
+    {k:'usdjpy',pair:'USD / JPY',desc:'美元 / 日圓'},
+    {k:'gbpusd',pair:'GBP / USD',desc:'英鎊 / 美元'},
+    {k:'usdcny',pair:'USD / CNY',desc:'美元 / 人民幣'},
+    {k:'audusd',pair:'AUD / USD',desc:'澳幣 / 美元'},
+    {k:'xauusd',pair:'XAU / USD',desc:'黃金（每盎司）'},
+    {k:'wti',   pair:'WTI Crude',desc:'西德州原油（USD/桶）'},
+  ];
+  document.getElementById('fxContent').innerHTML=`
+    <table class="fx-table">
+      <thead><tr><th>貨幣對</th><th class="r">報價</th><th class="r">漲跌</th></tr></thead>
+      <tbody>${pairs.map(p=>{
+        const d=fx[p.k]||{};
+        return`<tr>
+          <td><div class="fx-pair">${p.pair}</div><div class="fx-desc">${p.desc}</div></td>
+          <td class="fx-rate">${d.rate||'—'}</td>
+          <td class="fx-chg ${cc(d.chg)}">${arrow(d.chg)}${d.chg||'—'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  return fx;
+}
+
+function renderNews(news){
+  const cols={
+    markets:'news-markets',
+    world:'news-world',
+    tech:'news-tech',
+    entertainment:'news-entertainment'
+  };
+  Object.entries(cols).forEach(([key,elId])=>{
+    const el=document.getElementById(elId);
+    const items=(news&&news[key])||[];
+    if(!items.length){el.innerHTML='<div class="empty">暫無資料</div>';return;}
+    el.innerHTML=items.map(n=>{
+      const s=srcStyles[n.key]||srcStyles.other;
+      const displayTitle=n.title_zh||n.title;
+      const showEn=n.title_zh&&n.title_zh!==n.title;
+      return`<div class="news-item">
+        <a href="${n.link}" target="_blank" rel="noopener">
+          <span class="news-badge ${s.cls}">${s.label}</span>
+          <div class="news-hl">${displayTitle}</div>
+          ${showEn?`<div class="news-hl-en">${n.title}</div>`:''}
+          <div class="news-date">${timeAgo(n.date)}</div>
+        </a>
+      </div>`;
+    }).join('');
+  });
+}
+
+function buildTicker(si,fx){
+  const s=(si||[]).map(x=>{
+    const c=cc(x.chg)==='up'?'t-up':cc(x.chg)==='dn'?'t-dn':'';
+    return`<div class="t-item"><span class="t-label">${x.label}</span><span class="t-val ${c}">${x.val} ${x.chg}</span></div>`;
+  });
+  const f=fx?[{l:'USD/TWD',k:'usdtwd'},{l:'EUR/USD',k:'eurusd'},{l:'Gold',k:'xauusd'},{l:'WTI',k:'wti'}].map(x=>{
+    const d=fx[x.k]||{};
+    const c=cc(d.chg)==='up'?'t-up':cc(d.chg)==='dn'?'t-dn':'';
+    return`<div class="t-item"><span class="t-label">${x.l}</span><span class="t-val ${c}">${d.rate||'—'}</span></div>`;
+  }):[];
+  const all=[...s,...f];
+  if(!all.length)return;
+  document.getElementById('tickerInner').innerHTML=[...all,...all].join('<span style="color:rgba(255,255,255,0.15)">◆</span>');
+}
+
+function isStale(isoStr){
+  if(!isoStr)return true;
+  return(Date.now()-new Date(isoStr))/1000/3600>26;
+}
+
+async function loadData(){
+  const dot=document.getElementById('statusDot');
+  const msg=document.getElementById('statusMsg');
+  const upEl=document.getElementById('dataUpdatedAt');
+  try{
+    const r=await fetch(`dashboard-data.json?t=${Date.now()}`);
+    if(!r.ok)throw new Error('fetch failed');
+    const data=await r.json();
+    const si=renderStocks(data.stocks);
+    const fx=renderFX(data.fx);
+    renderNews(data.news);
+    buildTicker(si,fx);
+    const stale=isStale(data.updated_at_iso);
+    dot.className='dot '+(stale?'stale':'live');
+    msg.textContent=stale?'資料可能過期（超過 26 小時）':'資料正常';
+    upEl.textContent=`資料更新時間：${data.updated_at||'未知'}`;
+  }catch(e){
+    dot.className='dot err';
+    msg.textContent='無法讀取資料';
+    console.error(e);
+  }
+}
+
+// ── GitHub Actions trigger ──
+function closeTokenModal(){
+  document.getElementById('tokenModal').style.display='none';
+}
+
+function triggerUpdate(){
+  const token=localStorage.getItem('gh_token');
+  const user=localStorage.getItem('gh_user');
+  const repo=localStorage.getItem('gh_repo');
+  if(!token||!user||!repo){
+    // First time: show modal
+    const modal=document.getElementById('tokenModal');
+    modal.style.display='flex';
+    // Pre-fill if partially saved
+    if(user) document.getElementById('ghUser').value=user;
+    if(repo) document.getElementById('ghRepo').value=repo;
+    return;
+  }
+  doTrigger(token,user,repo);
+}
+
+function saveTokenAndTrigger(){
+  const token=document.getElementById('ghToken').value.trim();
+  const user=document.getElementById('ghUser').value.trim();
+  const repo=document.getElementById('ghRepo').value.trim();
+  const err=document.getElementById('tokenErr');
+  if(!token||!user||!repo){
+    err.textContent='請填寫所有欄位'; err.style.display='block'; return;
+  }
+  if(!token.startsWith('github_pat_')&&!token.startsWith('ghp_')){
+    err.textContent='Token 格式不正確（應以 github_pat_ 或 ghp_ 開頭）';
+    err.style.display='block'; return;
+  }
+  err.style.display='none';
+  localStorage.setItem('gh_token', token);
+  localStorage.setItem('gh_user', user);
+  localStorage.setItem('gh_repo', repo);
+  closeTokenModal();
+  doTrigger(token,user,repo);
+}
+
+async function doTrigger(token,user,repo){
+  const btn=document.getElementById('triggerBtn');
+  const note=document.getElementById('refreshNote');
+  btn.disabled=true;
+  btn.textContent='⟳ 觸發中...';
+  note.textContent='';
+
+  try{
+    const r=await fetch(`https://api.github.com/repos/${user}/${repo}/actions/workflows/update-dashboard.yml/dispatches`,{
+      method:'POST',
+      headers:{
+        'Authorization':`Bearer ${token}`,
+        'Accept':'application/vnd.github+json',
+        'Content-Type':'application/json',
+      },
+      body:JSON.stringify({ref:'main'})
+    });
+
+    if(r.status===204){
+      btn.textContent='✓ 已觸發';
+      note.textContent='GitHub Actions 執行中，約 2–3 分鐘後資料更新。\n頁面將在 3 分鐘後自動重新整理。';
+      // Auto reload after 3 min
+      setTimeout(()=>{ loadData(); btn.disabled=false; btn.textContent='⟳ 立即更新'; note.textContent=''; }, 3*60*1000);
+    } else if(r.status===401){
+      note.textContent='Token 無效或已過期，請重新設定。';
+      localStorage.removeItem('gh_token');
+      btn.disabled=false; btn.textContent='⟳ 立即更新';
+    } else {
+      const d=await r.json().catch(()=>({}));
+      note.textContent=`觸發失敗（${r.status}）：${d.message||'請檢查 Token 權限'}`;
+      btn.disabled=false; btn.textContent='⟳ 立即更新';
+    }
+  }catch(e){
+    note.textContent='網路錯誤，請稍後再試';
+    btn.disabled=false; btn.textContent='⟳ 立即更新';
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
