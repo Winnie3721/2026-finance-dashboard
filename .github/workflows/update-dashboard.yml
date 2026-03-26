@@ -2,14 +2,14 @@ name: Update Dashboard Data
 
 on:
   schedule:
-    - cron: '0 1 * * *'   # 每天台灣時間早上 9:00（UTC+8 → UTC 01:00）
-  workflow_dispatch:        # 也可以手動觸發
+    - cron: '0 1 * * *'   # 每天台灣時間早上 9:00（UTC 01:00）
+  workflow_dispatch:        # 手動觸發
 
 jobs:
   update:
     runs-on: ubuntu-latest
     permissions:
-      contents: write       # 允許 push dashboard-data.json 回 repo
+      contents: write
 
     steps:
       - name: Checkout repo
@@ -21,14 +21,14 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests feedparser
+        run: pip install requests feedparser yfinance
 
-      - name: Fetch RSS + Call Claude API + Write JSON
+      - name: Fetch data + write JSON
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python update_data.py
 
-      - name: Commit and push updated data
+      - name: Commit and push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
