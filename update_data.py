@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 """
 update_data.py — GitHub Actions 每日執行
-策略：RSS 能抓到就用，抓不到就用 Claude API 搜尋補足
+- 股市/外匯：yfinance 直接抓 Yahoo Finance（精確、免費）
+- 新聞：RSS 優先，不足則 Claude API 補足
 """
 
 import os, json, re, requests, feedparser, time
 from datetime import datetime, timezone, timedelta
+
+try:
+    import yfinance as yf
+    HAS_YF = True
+except ImportError:
+    HAS_YF = False
+    print("yfinance not available, falling back to Claude API")
 
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 API_URL = "https://api.anthropic.com/v1/messages"
@@ -16,6 +24,31 @@ HEADERS = {
 }
 TW_TZ = timezone(timedelta(hours=8))
 
+# ── Yahoo Finance 代碼對照 ────────────────────────────────────
+STOCK_SYMBOLS = {
+    "sp500":  "^GSPC",
+    "nasdaq": "^IXIC",
+    "dow":    "^DJI",
+    "twii":   "^TWII",
+    "nikkei": "^N225",
+    "hsi":    "^HSI",
+    "kospi":  "^KS11",
+    "dax":    "^GDAXI",
+    "ftse":   "^FTSE",
+}
+
+FX_SYMBOLS = {
+    "usdtwd": "TWD=X",
+    "eurusd": "EURUSD=X",
+    "usdjpy": "JPY=X",
+    "gbpusd": "GBPUSD=X",
+    "usdcny": "CNY=X",
+    "audusd": "AUDUSD=X",
+    "xauusd": "GC=F",    # 黃金期貨
+    "wti":    "CL=F",    # WTI原油期貨
+}
+
+# ── RSS 來源 ──────────────────────────────────────────────────
 RSS_SOURCES = {
     "markets": [
         {"src": "經濟日報",    "key": "udn_econ",   "url": "https://money.udn.com/rssfeed/news/1001/5591?ch=money"},
@@ -47,6 +80,110 @@ RSS_SOURCES = {
 
 MAX_PER_COL = 5
 
+# ── 市場資料：yfinance ────────────────────────────────────────
+def fmt_val(price, symbol):
+    """格式化數字顯示"""
+    if price is None:
+        return "N/A"
+    if symbol in ("GC=F", "CL=F") or price > 100:
+        return f"{price:,.2f}"
+    return f"{price:.4f}"
+
+def fmt_chg(chg_pct):
+    if chg_pct is None:
+        return "0.00%"
+    sign = "+" if chg_pct >= 0 else ""
+    return f"{sign}{chg_pct:.2f}%"
+
+def fetch_markets_yfinance():
+    """用 yfinance 抓 Yahoo Finance 即時資料"""
+    stocks = {}
+    fx = {}
+
+    print("  Fetching stocks from Yahoo Finance...")
+    for key, symbol in STOCK_SYMBOLS.items():
+        try:
+            ticker = yf.Ticker(symbol)
+            info = ticker.fast_info
+            price = info.last_price
+            prev  = info.previous_close
+            if price and prev:
+                chg_pct = (price - prev) / prev * 100
+            else:
+                chg_pct = None
+            stocks[key] = {
+                "val": fmt_val(price, symbol),
+                "chg": fmt_chg(chg_pct),
+            }
+            print(f"    ✓ {key} ({symbol}): {stocks[key]['val']} {stocks[key]['chg']}")
+            time.sleep(0.3)
+        except Exception as e:
+            print(f"    ✗ {key} ({symbol}): {e}")
+            stocks[key] = {"val": "N/A", "chg": "—"}
+
+    print("  Fetching FX & commodities from Yahoo Finance...")
+    for key, symbol in FX_SYMBOLS.items():
+        try:
+            ticker = yf.Ticker(symbol)
+            info = ticker.fast_info
+            price = info.last_price
+            prev  = info.previous_close
+            if price and prev:
+                chg = price - prev
+                sign = "+" if chg >= 0 else ""
+                chg_str = f"{sign}{chg:.4f}"
+            else:
+                chg_str = "—"
+            fx[key] = {
+                "rate": fmt_val(price, symbol),
+                "chg":  chg_str,
+            }
+            print(f"    ✓ {key} ({symbol}): {fx[key]['rate']} {fx[key]['chg']}")
+            time.sleep(0.3)
+        except Exception as e:
+            print(f"    ✗ {key} ({symbol}): {e}")
+            fx[key] = {"rate": "N/A", "chg": "—"}
+
+    return {"stocks": stocks, "fx": fx}
+
+def claude_call(prompt, use_search=False, max_tokens=1500):
+    body = {
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": max_tokens,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    if use_search:
+        body["tools"] = [{"type": "web_search_20250305", "name": "web_search"}]
+    for attempt in range(2):
+        try:
+            r = requests.post(API_URL, headers=HEADERS, json=body, timeout=90)
+            r.raise_for_status()
+            data = r.json()
+            return "".join(b["text"] for b in data["content"] if b["type"] == "text")
+        except Exception as e:
+            print(f"    API attempt {attempt+1} failed: {e}")
+            if attempt == 0:
+                time.sleep(5)
+    return ""
+
+def robust_parse(txt):
+    if not txt:
+        return None
+    for pattern in [txt.strip(),
+                    re.sub(r'```(?:json)?\s*', '', txt).strip()]:
+        for finder in [
+            lambda t: (t.find("{"), t.rfind("}")),
+            lambda t: (t.find("["), t.rfind("]")),
+        ]:
+            s, e = finder(pattern)
+            if s != -1 and e != -1:
+                try:
+                    return json.loads(pattern[s:e+1])
+                except:
+                    pass
+    return None
+
+# ── RSS ───────────────────────────────────────────────────────
 def fetch_rss_col(col_name):
     items = []
     for source in RSS_SOURCES.get(col_name, []):
@@ -78,93 +215,6 @@ def fetch_rss_col(col_name):
             print(f"    ✗ RSS {source['src']}: {e}")
     return items
 
-def claude_call(prompt, use_search=False, max_tokens=1500):
-    body = {
-        "model": "claude-sonnet-4-20250514",
-        "max_tokens": max_tokens,
-        "messages": [{"role": "user", "content": prompt}],
-    }
-    if use_search:
-        body["tools"] = [{"type": "web_search_20250305", "name": "web_search"}]
-    for attempt in range(3):
-        try:
-            r = requests.post(API_URL, headers=HEADERS, json=body, timeout=120)
-            r.raise_for_status()
-            data = r.json()
-            text = "".join(b["text"] for b in data["content"] if b["type"] == "text")
-            print(f"    API response ({len(text)} chars): {text[:200]}")
-            return text
-        except Exception as e:
-            print(f"    API attempt {attempt+1} failed: {e}")
-            if attempt < 2:
-                time.sleep(8)
-    return ""
-
-def robust_parse_json(txt):
-    """多重策略解析 JSON，印出過程方便 debug"""
-    if not txt:
-        print("    parse: empty text")
-        return None
-
-    # 1. 直接解析
-    try:
-        return json.loads(txt.strip())
-    except:
-        pass
-
-    # 2. 去掉 markdown fences
-    clean = re.sub(r'```(?:json)?\s*', '', txt).strip()
-    try:
-        return json.loads(clean)
-    except:
-        pass
-
-    # 3. 找第一個 { ... } 範圍
-    s = txt.find("{")
-    e = txt.rfind("}")
-    if s != -1 and e != -1:
-        try:
-            return json.loads(txt[s:e+1])
-        except Exception as ex:
-            print(f"    parse obj failed: {ex}")
-
-    # 4. 找第一個 [ ... ] 範圍
-    s = txt.find("[")
-    e = txt.rfind("]")
-    if s != -1 and e != -1:
-        try:
-            return json.loads(txt[s:e+1])
-        except Exception as ex:
-            print(f"    parse arr failed: {ex}")
-
-    print(f"    parse: all strategies failed. Text snippet: {txt[:300]}")
-    return None
-
-def fetch_markets():
-    print("  Calling Claude API...")
-    txt = claude_call(
-        "Search the web for today's stock market index values and forex rates. "
-        "Return ONLY raw JSON (no markdown code fences, no explanation text before or after), "
-        "in this exact structure:\n"
-        '{"stocks":{"sp500":{"val":"5500","chg":"+0.5%"},"nasdaq":{"val":"17200","chg":"+0.8%"},'
-        '"dow":{"val":"43000","chg":"+0.3%"},"twii":{"val":"22500","chg":"-0.2%"},'
-        '"nikkei":{"val":"38000","chg":"+1.1%"},"hsi":{"val":"17000","chg":"-0.5%"},'
-        '"kospi":{"val":"2500","chg":"+0.4%"},"dax":{"val":"18000","chg":"+0.6%"},'
-        '"ftse":{"val":"8200","chg":"+0.2%"}},'
-        '"fx":{"usdtwd":{"rate":"32.50","chg":"+0.12"},"eurusd":{"rate":"1.085","chg":"-0.002"},'
-        '"usdjpy":{"rate":"149.5","chg":"+0.3"},"gbpusd":{"rate":"1.265","chg":"+0.003"},'
-        '"usdcny":{"rate":"7.24","chg":"-0.005"},"audusd":{"rate":"0.655","chg":"+0.001"},'
-        '"xauusd":{"rate":"3050","chg":"+5.2"},"wti":{"rate":"71.5","chg":"-0.8"}}}\n'
-        "Replace example numbers with REAL current values.",
-        use_search=True, max_tokens=800
-    )
-    result = robust_parse_json(txt)
-    if isinstance(result, dict) and "stocks" in result and "fx" in result:
-        print(f"    ✓ Parsed: {len(result['stocks'])} stocks, {len(result['fx'])} fx pairs")
-        return result
-    print("    ✗ Could not parse market data")
-    return {"stocks": {}, "fx": {}}
-
 def search_news_col(col_name, existing_count):
     need = MAX_PER_COL - existing_count
     if need <= 0:
@@ -177,52 +227,49 @@ def search_news_col(col_name, existing_count):
     }
     txt = claude_call(
         prompts.get(col_name, f"Search for {need} latest news today.") +
-        f"\nReturn ONLY a raw JSON array (no markdown) with {need} objects:\n"
-        '[{"src":"AP","key":"ap","title":"English headline","title_zh":"繁體中文","link":"https://...","date":"2小時前"}]\n'
-        "key options: ap, reuters, cnbc, bbc, bloomberg, techcrunch, vb, verge, wired, deadline, variety, thr, thewrap, bnext, ctee, udn_econ, other",
+        f"\nReturn ONLY raw JSON array, no markdown, {need} items:\n"
+        '[{"src":"AP","key":"ap","title":"headline","title_zh":"繁中","link":"https://...","date":"2小時前"}]',
         use_search=True, max_tokens=1000
     )
-    result = robust_parse_json(txt)
-    if isinstance(result, list):
-        return result[:need]
-    return []
+    result = robust_parse(txt)
+    return result[:need] if isinstance(result, list) else []
 
 def translate_batch(items):
-    to_translate = [(i, item) for i, item in enumerate(items) if not item.get("title_zh") and item.get("title")]
-    if not to_translate:
+    to_tr = [(i, x) for i, x in enumerate(items) if not x.get("title_zh") and x.get("title")]
+    if not to_tr:
         return items
-    titles_text = "\n".join(f"{i+1}. {item['title']}" for i, item in to_translate)
+    titles = "\n".join(f"{i+1}. {x['title']}" for i, x in to_tr)
     txt = claude_call(
-        f"Translate to Traditional Chinese. Return ONLY a raw JSON array of {len(to_translate)} strings, no markdown:\n{titles_text}",
+        f"Translate to Traditional Chinese. Return ONLY raw JSON array of {len(to_tr)} strings, no markdown:\n{titles}",
         max_tokens=800
     )
-    result = robust_parse_json(txt)
-    if isinstance(result, list) and len(result) == len(to_translate):
-        for (orig_idx, _), zh in zip(to_translate, result):
-            items[orig_idx]["title_zh"] = zh
+    result = robust_parse(txt)
+    if isinstance(result, list) and len(result) == len(to_tr):
+        for (orig_i, _), zh in zip(to_tr, result):
+            items[orig_i]["title_zh"] = zh
     return items
 
+# ── Main ──────────────────────────────────────────────────────
 def main():
     now_tw = datetime.now(TW_TZ)
     print(f"=== update_data.py {now_tw.strftime('%Y-%m-%d %H:%M')} TW ===\n")
 
-    print("[1/3] Fetching market data...")
-    markets = fetch_markets()
-    print(f"  Result — Stocks: {len(markets.get('stocks',{}))} | FX: {len(markets.get('fx',{}))}")
+    print("[1/3] Fetching market data via yfinance (Yahoo Finance)...")
+    markets = fetch_markets_yfinance()
+    print(f"  Result — Stocks: {len(markets['stocks'])} | FX: {len(markets['fx'])}")
 
-    print("\n[2/3] Fetching news (RSS + Claude supplement)...")
+    print("\n[2/3] Fetching news...")
     news = {}
     for col in ["markets", "world", "tech", "entertainment"]:
         print(f"  [{col}]")
         items = fetch_rss_col(col)
         if len(items) < MAX_PER_COL:
-            print(f"    RSS: {len(items)}, supplementing...")
             extra = search_news_col(col, len(items))
             items.extend(extra)
         news[col] = items[:MAX_PER_COL]
         print(f"    Final: {len(news[col])} items")
 
-    print("\n[3/3] Translating RSS headlines...")
+    print("\n[3/3] Translating headlines...")
     all_items = []
     for col in ["markets", "world", "tech", "entertainment"]:
         all_items.extend(news[col])
@@ -235,8 +282,8 @@ def main():
     output = {
         "updated_at":     now_tw.strftime("%Y-%m-%d %H:%M"),
         "updated_at_iso": now_tw.isoformat(),
-        "stocks":         markets.get("stocks", {}),
-        "fx":             markets.get("fx", {}),
+        "stocks":         markets["stocks"],
+        "fx":             markets["fx"],
         "news":           news,
     }
 
@@ -246,8 +293,7 @@ def main():
     print(f"\n✅ Done.")
     print(f"   Stocks: {len(output['stocks'])} | FX: {len(output['fx'])}")
     for col, items in output["news"].items():
-        srcs = list(set(i['src'] for i in items))
-        print(f"   news/{col}: {len(items)} items — {srcs}")
+        print(f"   news/{col}: {len(items)} items")
 
 if __name__ == "__main__":
     main()
