@@ -1,11 +1,118 @@
 {
-  "updated_at": "尚未更新",
-  "updated_at_iso": "",
+  "updated_at": "2026-03-26 14:31",
+  "updated_at_iso": "2026-03-26T14:31:51.270754+08:00",
   "stocks": {},
   "fx": {},
   "news": {
-    "markets": [],
-    "world": [],
-    "tech": []
+    "markets": [
+      {
+        "src": "BBC Business",
+        "key": "bbc",
+        "title": "NS&I set to pay millions in compensation to customers",
+        "link": "https://www.bbc.com/news/articles/c3w3eg4n9zwo?at_medium=RSS&at_campaign=rss",
+        "date": "Thu, 26 Mar 2026 05:46:43 GMT",
+        "title_zh": "NS&I set to pay millions in compensation to customers"
+      },
+      {
+        "src": "BBC Business",
+        "key": "bbc",
+        "title": "Octopus boss: We've seen a 50% rise in solar panel sales since start of Iran war",
+        "link": "https://www.bbc.com/news/articles/c4gjlezq80no?at_medium=RSS&at_campaign=rss",
+        "date": "Thu, 26 Mar 2026 00:00:49 GMT",
+        "title_zh": "Octopus boss: We've seen a 50% rise in solar panel sales since start of Iran war"
+      },
+      {
+        "src": "BBC Business",
+        "key": "bbc",
+        "title": "CO2 plant to reopen in Iran war contingency plan",
+        "link": "https://www.bbc.com/news/articles/cew7xrj4497o?at_medium=RSS&at_campaign=rss",
+        "date": "Thu, 26 Mar 2026 01:51:16 GMT",
+        "title_zh": "CO2 plant to reopen in Iran war contingency plan"
+      },
+      {
+        "src": "BBC Business",
+        "key": "bbc",
+        "title": "Prepare for turbulence - how a prolonged Middle East conflict could reshape how we fly",
+        "link": "https://www.bbc.com/news/articles/cn08x9lw0pzo?at_medium=RSS&at_campaign=rss",
+        "date": "Thu, 26 Mar 2026 00:41:16 GMT",
+        "title_zh": "Prepare for turbulence - how a prolonged Middle East conflict could reshape how we fly"
+      }
+    ],
+    "world": [
+      {
+        "src": "BBC World",
+        "key": "bbc",
+        "title": "Meta and YouTube found liable in landmark social media addiction trial",
+        "link": "https://www.bbc.com/news/articles/c747x7gz249o?at_medium=RSS&at_campaign=rss",
+        "date": "Wed, 25 Mar 2026 22:59:23 GMT",
+        "title_zh": "Meta and YouTube found liable in landmark social media addiction trial"
+      },
+      {
+        "src": "BBC World",
+        "key": "bbc",
+        "title": "Who wants what and why from US-Iran peace talks?",
+        "link": "https://www.bbc.com/news/articles/cm29l9r68j8o?at_medium=RSS&at_campaign=rss",
+        "date": "Wed, 25 Mar 2026 21:37:34 GMT",
+        "title_zh": "Who wants what and why from US-Iran peace talks?"
+      },
+      {
+        "src": "BBC World",
+        "key": "bbc",
+        "title": "Prepare for turbulence - how a prolonged Middle East conflict could reshape how we fly",
+        "link": "https://www.bbc.com/news/articles/cn08x9lw0pzo?at_medium=RSS&at_campaign=rss",
+        "date": "Thu, 26 Mar 2026 00:41:16 GMT",
+        "title_zh": "Prepare for turbulence - how a prolonged Middle East conflict could reshape how we fly"
+      },
+      {
+        "src": "BBC World",
+        "key": "bbc",
+        "title": "UN votes to recognise enslavement of Africans as 'gravest crime against humanity'",
+        "link": "https://www.bbc.com/news/articles/cvg06q36052o?at_medium=RSS&at_campaign=rss",
+        "date": "Wed, 25 Mar 2026 20:12:31 GMT",
+        "title_zh": "UN votes to recognise enslavement of Africans as 'gravest crime against humanity'"
+      }
+    ],
+    "tech": [
+      {
+        "src": "TechCrunch",
+        "key": "techcrunch",
+        "title": "The least surprising chapter of the Manus story is what’s happening right now",
+        "link": "https://techcrunch.com/2026/03/25/the-least-surprising-chapter-of-the-manus-story-is-whats-happening-right-now/",
+        "date": "Thu, 26 Mar 2026 02:46:48 +0000",
+        "title_zh": "The least surprising chapter of the Manus story is what’s happening right now"
+      },
+      {
+        "src": "TechCrunch",
+        "key": "techcrunch",
+        "title": "Mercor competitor Deccan AI raises $25M, sources experts from India",
+        "link": "https://techcrunch.com/2026/03/25/deccan-ai-raises-25m-as-ai-training-push-relies-on-india-based-workforce/",
+        "date": "Thu, 26 Mar 2026 00:30:00 +0000",
+        "title_zh": "Mercor competitor Deccan AI raises $25M, sources experts from India"
+      },
+      {
+        "src": "TechCrunch",
+        "key": "techcrunch",
+        "title": "Delve did the security compliance on LiteLLM, an AI project hit by malware",
+        "link": "https://techcrunch.com/2026/03/25/delve-did-the-security-compliance-on-litellm-an-ai-project-hit-by-malware/",
+        "date": "Thu, 26 Mar 2026 00:03:52 +0000",
+        "title_zh": "Delve did the security compliance on LiteLLM, an AI project hit by malware"
+      },
+      {
+        "src": "TechCrunch",
+        "key": "techcrunch",
+        "title": "The AI skills gap is here, says AI company, and power users are pulling ahead",
+        "link": "https://techcrunch.com/2026/03/25/the-ai-skills-gap-is-here-says-ai-company-and-power-users-are-pulling-ahead/",
+        "date": "Wed, 25 Mar 2026 21:44:13 +0000",
+        "title_zh": "The AI skills gap is here, says AI company, and power users are pulling ahead"
+      },
+      {
+        "src": "VentureBeat",
+        "key": "vb",
+        "title": "Google's new TurboQuant algorithm speeds up AI memory 8x, cutting costs by 50% or more",
+        "link": "https://venturebeat.com/infrastructure/googles-new-turboquant-algorithm-speeds-up-ai-memory-8x-cutting-costs-by-50",
+        "date": "Wed, 25 Mar 2026 19:27:00 GMT",
+        "title_zh": "Google's new TurboQuant algorithm speeds up AI memory 8x, cutting costs by 50% or more"
+      }
+    ]
   }
 }
