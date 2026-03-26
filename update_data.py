@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-update_data.py — 每天由 GitHub Actions 執行
-使用經過驗證的 RSS feed 網址
+update_data.py — GitHub Actions 每日執行
+策略：RSS 能抓到就用，抓不到就用 Claude API 搜尋補足
 """
 
-import os, json, requests, feedparser
+import os, json, re, requests, feedparser, time
 from datetime import datetime, timezone, timedelta
 
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
@@ -16,60 +16,69 @@ HEADERS = {
 }
 TW_TZ = timezone(timedelta(hours=8))
 
-# ── 經過驗證的 RSS 來源 ──────────────────────────────────────
-RSS_FEEDS = [
-    # 欄1：市場 & 商業（AP + CNBC + BBC）
-    {"col": "markets", "src": "AP Business", "key": "ap",   "url": "https://feeds.apnews.com/rss/apf-business",                          "limit": 2},
-    {"col": "markets", "src": "CNBC",        "key": "cnbc", "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html",               "limit": 2},
-    {"col": "markets", "src": "BBC Business","key": "bbc",  "url": "https://feeds.bbci.co.uk/news/business/rss.xml",                     "limit": 2},
-
-    # 欄2：全球 & 總經（AP + BBC World）
-    {"col": "world",   "src": "AP World",    "key": "ap",   "url": "https://feeds.apnews.com/rss/apf-worldnews",                         "limit": 3},
-    {"col": "world",   "src": "BBC World",   "key": "bbc",  "url": "https://feeds.bbci.co.uk/news/world/rss.xml",                        "limit": 2},
-
-    # 欄3：科技 & 產業（TechCrunch + VentureBeat + Wired）
-    {"col": "tech",    "src": "TechCrunch",  "key": "techcrunch","url": "https://techcrunch.com/feed/",                                   "limit": 2},
-    {"col": "tech",    "src": "VentureBeat", "key": "vb",        "url": "https://venturebeat.com/feed/",                                  "limit": 2},
-    {"col": "tech",    "src": "Wired",       "key": "wired",     "url": "https://www.wired.com/feed/rss",                                 "limit": 2},
-
-    # 欄4：影視 & 娛樂（Deadline + Hollywood Reporter + Variety）
-    {"col": "entertainment", "src": "Deadline",            "key": "deadline", "url": "https://deadline.com/feed/",                        "limit": 2},
-    {"col": "entertainment", "src": "Hollywood Reporter",  "key": "thr",      "url": "https://www.hollywoodreporter.com/feed/",            "limit": 2},
-    {"col": "entertainment", "src": "Variety",             "key": "variety",  "url": "https://variety.com/feed/",                          "limit": 2},
-]
+RSS_SOURCES = {
+    "markets": [
+        {"src": "經濟日報",    "key": "udn_econ",   "url": "https://money.udn.com/rssfeed/news/1001/5591?ch=money"},
+        {"src": "工商時報",    "key": "ctee",        "url": "https://www.ctee.com.tw/rss"},
+        {"src": "BBC Business","key": "bbc",         "url": "https://feeds.bbci.co.uk/news/business/rss.xml"},
+        {"src": "CNBC",        "key": "cnbc",        "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html"},
+        {"src": "MarketWatch", "key": "marketwatch", "url": "https://feeds.marketwatch.com/marketwatch/topstories/"},
+    ],
+    "world": [
+        {"src": "聯合新聞網",  "key": "udn_world",  "url": "https://udn.com/rssfeed/news/2/6638?ch=news"},
+        {"src": "BBC World",   "key": "bbc",         "url": "https://feeds.bbci.co.uk/news/world/rss.xml"},
+        {"src": "AP World",    "key": "ap",          "url": "https://feeds.apnews.com/rss/apf-worldnews"},
+        {"src": "Reuters",     "key": "reuters",     "url": "https://feeds.reuters.com/Reuters/worldNews"},
+    ],
+    "tech": [
+        {"src": "數位時代",    "key": "bnext",       "url": "https://www.bnext.com.tw/rss"},
+        {"src": "TechCrunch",  "key": "techcrunch",  "url": "https://techcrunch.com/feed/"},
+        {"src": "The Verge",   "key": "verge",       "url": "https://www.theverge.com/rss/index.xml"},
+        {"src": "VentureBeat", "key": "vb",          "url": "https://venturebeat.com/feed/"},
+        {"src": "Wired",       "key": "wired",       "url": "https://www.wired.com/feed/rss"},
+    ],
+    "entertainment": [
+        {"src": "Deadline",           "key": "deadline","url": "https://deadline.com/feed/"},
+        {"src": "Variety",            "key": "variety", "url": "https://variety.com/feed/"},
+        {"src": "Hollywood Reporter", "key": "thr",     "url": "https://www.hollywoodreporter.com/feed/"},
+        {"src": "The Wrap",           "key": "thewrap", "url": "https://www.thewrap.com/feed/"},
+    ],
+}
 
 MAX_PER_COL = 5
 
-def fetch_rss():
-    cols = {"markets": [], "world": [], "tech": [], "entertainment": []}
-    feedparser.USER_AGENT = "Mozilla/5.0 (compatible; DashboardBot/1.0)"
-    for feed in RSS_FEEDS:
-        col = feed["col"]
-        if len(cols[col]) >= MAX_PER_COL:
-            continue
+def fetch_rss_col(col_name):
+    items = []
+    for source in RSS_SOURCES.get(col_name, []):
+        if len(items) >= MAX_PER_COL:
+            break
         try:
-            d = feedparser.parse(feed["url"])
+            feedparser.USER_AGENT = "Mozilla/5.0 (compatible; NewsDashboard/1.0)"
+            d = feedparser.parse(source["url"])
             added = 0
-            for entry in d.entries:
-                if len(cols[col]) >= MAX_PER_COL or added >= feed["limit"]:
+            need = MAX_PER_COL - len(items)
+            for entry in d.entries[:need+2]:
+                if added >= min(3, need):
                     break
                 title = entry.get("title", "").strip()
                 if not title:
                     continue
-                cols[col].append({
-                    "src":   feed["src"],
-                    "key":   feed["key"],
-                    "title": title,
-                    "link":  entry.get("link", ""),
-                    "date":  entry.get("published", ""),
+                items.append({
+                    "src":      source["src"],
+                    "key":      source["key"],
+                    "title":    title,
+                    "title_zh": "",
+                    "link":     entry.get("link", ""),
+                    "date":     entry.get("published", ""),
                 })
                 added += 1
-            print(f"  {'✓' if added > 0 else '✗'} {feed['src']} ({col}): {added} items")
+            if added > 0:
+                print(f"    ✓ RSS {source['src']}: {added} items")
         except Exception as e:
-            print(f"  ✗ {feed['src']}: {e}")
-    return cols
+            print(f"    ✗ RSS {source['src']}: {e}")
+    return items
 
-def claude(prompt, use_search=False, max_tokens=1500):
+def claude_call(prompt, use_search=False, max_tokens=1500):
     body = {
         "model": "claude-sonnet-4-20250514",
         "max_tokens": max_tokens,
@@ -77,114 +86,168 @@ def claude(prompt, use_search=False, max_tokens=1500):
     }
     if use_search:
         body["tools"] = [{"type": "web_search_20250305", "name": "web_search"}]
-    r = requests.post(API_URL, headers=HEADERS, json=body, timeout=90)
-    r.raise_for_status()
-    data = r.json()
-    return "".join(b["text"] for b in data["content"] if b["type"] == "text")
+    for attempt in range(3):
+        try:
+            r = requests.post(API_URL, headers=HEADERS, json=body, timeout=120)
+            r.raise_for_status()
+            data = r.json()
+            text = "".join(b["text"] for b in data["content"] if b["type"] == "text")
+            print(f"    API response ({len(text)} chars): {text[:200]}")
+            return text
+        except Exception as e:
+            print(f"    API attempt {attempt+1} failed: {e}")
+            if attempt < 2:
+                time.sleep(8)
+    return ""
 
-def parse_json(txt):
-    txt = txt.replace("```json", "").replace("```", "").strip()
-    s, e = txt.find("{"), txt.rfind("}")
+def robust_parse_json(txt):
+    """多重策略解析 JSON，印出過程方便 debug"""
+    if not txt:
+        print("    parse: empty text")
+        return None
+
+    # 1. 直接解析
+    try:
+        return json.loads(txt.strip())
+    except:
+        pass
+
+    # 2. 去掉 markdown fences
+    clean = re.sub(r'```(?:json)?\s*', '', txt).strip()
+    try:
+        return json.loads(clean)
+    except:
+        pass
+
+    # 3. 找第一個 { ... } 範圍
+    s = txt.find("{")
+    e = txt.rfind("}")
     if s != -1 and e != -1:
-        return json.loads(txt[s:e+1])
-    return json.loads(txt)
+        try:
+            return json.loads(txt[s:e+1])
+        except Exception as ex:
+            print(f"    parse obj failed: {ex}")
+
+    # 4. 找第一個 [ ... ] 範圍
+    s = txt.find("[")
+    e = txt.rfind("]")
+    if s != -1 and e != -1:
+        try:
+            return json.loads(txt[s:e+1])
+        except Exception as ex:
+            print(f"    parse arr failed: {ex}")
+
+    print(f"    parse: all strategies failed. Text snippet: {txt[:300]}")
+    return None
 
 def fetch_markets():
-    print("  Calling Claude API with web search...")
-    txt = claude(
-        """Search for today's latest stock market index values and foreign exchange rates.
-Return ONLY valid JSON, no markdown, no explanation:
-{
-  "stocks": {
-    "sp500":  {"val":"5,500","chg":"+0.5%"},
-    "nasdaq": {"val":"17,200","chg":"+0.8%"},
-    "dow":    {"val":"43,000","chg":"+0.3%"},
-    "twii":   {"val":"22,500","chg":"-0.2%"},
-    "nikkei": {"val":"38,000","chg":"+1.1%"},
-    "hsi":    {"val":"17,000","chg":"-0.5%"},
-    "kospi":  {"val":"2,500","chg":"+0.4%"},
-    "dax":    {"val":"18,000","chg":"+0.6%"},
-    "ftse":   {"val":"8,200","chg":"+0.2%"}
-  },
-  "fx": {
-    "usdtwd": {"rate":"32.50","chg":"+0.12"},
-    "eurusd": {"rate":"1.0850","chg":"-0.0020"},
-    "usdjpy": {"rate":"149.50","chg":"+0.30"},
-    "gbpusd": {"rate":"1.2650","chg":"+0.0030"},
-    "usdcny": {"rate":"7.2400","chg":"-0.0050"},
-    "audusd": {"rate":"0.6550","chg":"+0.0010"},
-    "xauusd": {"rate":"3,050","chg":"+5.20"},
-    "wti":    {"rate":"71.50","chg":"-0.80"}
-  }
-}
-Use actual current data. Values as formatted strings with commas.""",
-        use_search=True,
+    print("  Calling Claude API...")
+    txt = claude_call(
+        "Search the web for today's stock market index values and forex rates. "
+        "Return ONLY raw JSON (no markdown code fences, no explanation text before or after), "
+        "in this exact structure:\n"
+        '{"stocks":{"sp500":{"val":"5500","chg":"+0.5%"},"nasdaq":{"val":"17200","chg":"+0.8%"},'
+        '"dow":{"val":"43000","chg":"+0.3%"},"twii":{"val":"22500","chg":"-0.2%"},'
+        '"nikkei":{"val":"38000","chg":"+1.1%"},"hsi":{"val":"17000","chg":"-0.5%"},'
+        '"kospi":{"val":"2500","chg":"+0.4%"},"dax":{"val":"18000","chg":"+0.6%"},'
+        '"ftse":{"val":"8200","chg":"+0.2%"}},'
+        '"fx":{"usdtwd":{"rate":"32.50","chg":"+0.12"},"eurusd":{"rate":"1.085","chg":"-0.002"},'
+        '"usdjpy":{"rate":"149.5","chg":"+0.3"},"gbpusd":{"rate":"1.265","chg":"+0.003"},'
+        '"usdcny":{"rate":"7.24","chg":"-0.005"},"audusd":{"rate":"0.655","chg":"+0.001"},'
+        '"xauusd":{"rate":"3050","chg":"+5.2"},"wti":{"rate":"71.5","chg":"-0.8"}}}\n'
+        "Replace example numbers with REAL current values.",
+        use_search=True, max_tokens=800
     )
-    return parse_json(txt)
+    result = robust_parse_json(txt)
+    if isinstance(result, dict) and "stocks" in result and "fx" in result:
+        print(f"    ✓ Parsed: {len(result['stocks'])} stocks, {len(result['fx'])} fx pairs")
+        return result
+    print("    ✗ Could not parse market data")
+    return {"stocks": {}, "fx": {}}
 
-def translate_titles(items):
-    if not items:
+def search_news_col(col_name, existing_count):
+    need = MAX_PER_COL - existing_count
+    if need <= 0:
         return []
-    titles = "\n".join(f"{i+1}. {n['title']}" for i, n in enumerate(items))
-    try:
-        txt = claude(
-            f"""Translate these news headlines to Traditional Chinese (繁體中文).
-Keep proper nouns (companies, people, countries, film/show titles) in their common Chinese form.
-Return ONLY a JSON array of translated strings, same count and order, no markdown:
-{titles}""",
-            max_tokens=1200,
-        )
-        txt = txt.replace("```json", "").replace("```", "").strip()
-        s, e = txt.find("["), txt.rfind("]")
-        arr = json.loads(txt[s:e+1]) if s != -1 else []
-        if len(arr) == len(items):
-            print(f"  ✓ Translated {len(arr)} headlines")
-            return arr
-    except Exception as ex:
-        print(f"  ✗ Translation failed: {ex}")
-    return [n["title"] for n in items]
+    prompts = {
+        "markets":       f"Search AP, CNBC, BBC Business for {need} latest financial news today.",
+        "world":         f"Search AP, BBC World, Reuters for {need} latest world news today.",
+        "tech":          f"Search TechCrunch, The Verge, VentureBeat for {need} latest tech news today.",
+        "entertainment": f"Search Deadline, Variety, Hollywood Reporter for {need} latest entertainment news today.",
+    }
+    txt = claude_call(
+        prompts.get(col_name, f"Search for {need} latest news today.") +
+        f"\nReturn ONLY a raw JSON array (no markdown) with {need} objects:\n"
+        '[{"src":"AP","key":"ap","title":"English headline","title_zh":"繁體中文","link":"https://...","date":"2小時前"}]\n'
+        "key options: ap, reuters, cnbc, bbc, bloomberg, techcrunch, vb, verge, wired, deadline, variety, thr, thewrap, bnext, ctee, udn_econ, other",
+        use_search=True, max_tokens=1000
+    )
+    result = robust_parse_json(txt)
+    if isinstance(result, list):
+        return result[:need]
+    return []
+
+def translate_batch(items):
+    to_translate = [(i, item) for i, item in enumerate(items) if not item.get("title_zh") and item.get("title")]
+    if not to_translate:
+        return items
+    titles_text = "\n".join(f"{i+1}. {item['title']}" for i, item in to_translate)
+    txt = claude_call(
+        f"Translate to Traditional Chinese. Return ONLY a raw JSON array of {len(to_translate)} strings, no markdown:\n{titles_text}",
+        max_tokens=800
+    )
+    result = robust_parse_json(txt)
+    if isinstance(result, list) and len(result) == len(to_translate):
+        for (orig_idx, _), zh in zip(to_translate, result):
+            items[orig_idx]["title_zh"] = zh
+    return items
 
 def main():
     now_tw = datetime.now(TW_TZ)
     print(f"=== update_data.py {now_tw.strftime('%Y-%m-%d %H:%M')} TW ===\n")
 
-    print("[1/3] Fetching RSS feeds...")
-    news_cols = fetch_rss()
-    for col, items in news_cols.items():
-        print(f"  → {col}: {len(items)} items total")
+    print("[1/3] Fetching market data...")
+    markets = fetch_markets()
+    print(f"  Result — Stocks: {len(markets.get('stocks',{}))} | FX: {len(markets.get('fx',{}))}")
 
-    print("\n[2/3] Fetching market data...")
-    try:
-        markets = fetch_markets()
-        print(f"  ✓ Stocks: {len(markets.get('stocks',{}))} | FX: {len(markets.get('fx',{}))}")
-    except Exception as e:
-        print(f"  ✗ Market fetch failed: {e}")
-        markets = {"stocks": {}, "fx": {}}
+    print("\n[2/3] Fetching news (RSS + Claude supplement)...")
+    news = {}
+    for col in ["markets", "world", "tech", "entertainment"]:
+        print(f"  [{col}]")
+        items = fetch_rss_col(col)
+        if len(items) < MAX_PER_COL:
+            print(f"    RSS: {len(items)}, supplementing...")
+            extra = search_news_col(col, len(items))
+            items.extend(extra)
+        news[col] = items[:MAX_PER_COL]
+        print(f"    Final: {len(news[col])} items")
 
-    print("\n[3/3] Translating headlines...")
-    all_items = (news_cols["markets"] + news_cols["world"] +
-                 news_cols["tech"] + news_cols["entertainment"])
-    translated = translate_titles(all_items)
-    i = 0
-    for col_key in ["markets", "world", "tech", "entertainment"]:
-        for item in news_cols[col_key]:
-            item["title_zh"] = translated[i] if i < len(translated) else item["title"]
-            i += 1
+    print("\n[3/3] Translating RSS headlines...")
+    all_items = []
+    for col in ["markets", "world", "tech", "entertainment"]:
+        all_items.extend(news[col])
+    all_items = translate_batch(all_items)
+    idx = 0
+    for col in ["markets", "world", "tech", "entertainment"]:
+        for i in range(len(news[col])):
+            news[col][i] = all_items[idx]; idx += 1
 
     output = {
         "updated_at":     now_tw.strftime("%Y-%m-%d %H:%M"),
         "updated_at_iso": now_tw.isoformat(),
         "stocks":         markets.get("stocks", {}),
         "fx":             markets.get("fx", {}),
-        "news":           news_cols,
+        "news":           news,
     }
 
     with open("dashboard-data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Done. dashboard-data.json updated.")
+    print(f"\n✅ Done.")
+    print(f"   Stocks: {len(output['stocks'])} | FX: {len(output['fx'])}")
     for col, items in output["news"].items():
-        print(f"   news/{col}: {len(items)} items")
+        srcs = list(set(i['src'] for i in items))
+        print(f"   news/{col}: {len(items)} items — {srcs}")
 
 if __name__ == "__main__":
     main()
