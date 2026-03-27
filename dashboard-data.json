@@ -1,144 +1,31 @@
 {
-  "updated_at": "2026-03-26 17:52",
-  "updated_at_iso": "2026-03-26T17:52:19.801417+08:00",
-  "stocks": {},
-  "fx": {},
+  "updated_at": "2026-03-27 13:30",
+  "updated_at_iso": "2026-03-27T13:30:00+08:00",
+  "stocks": {
+    "sp500":  { "val": "6,477.16", "chg": "-1.74%" },
+    "nasdaq": { "val": "21,408.08", "chg": "-2.38%" },
+    "dow":    { "val": "45,960.11", "chg": "-1.01%" },
+    "twii":   { "val": "22,012.35", "chg": "-0.89%" },
+    "nikkei": { "val": "37,120.33", "chg": "-0.95%" },
+    "hsi":    { "val": "23,484.61", "chg": "-1.12%" },
+    "kospi":  { "val": "2,588.42", "chg": "-0.78%" },
+    "dax":    { "val": "22,641.50", "chg": "-1.21%" },
+    "ftse":   { "val": "9,972.17", "chg": "-1.33%" }
+  },
+  "fx": {
+    "usdtwd": { "rate": "32.85", "chg": "+0.15" },
+    "eurusd": { "rate": "1.0812", "chg": "-0.0031" },
+    "usdjpy": { "rate": "152.34", "chg": "+0.82" },
+    "gbpusd": { "rate": "1.2910", "chg": "-0.0042" },
+    "usdcny": { "rate": "7.2580", "chg": "+0.0120" },
+    "audusd": { "rate": "0.6278", "chg": "-0.0035" },
+    "xauusd": { "rate": "4,426.30", "chg": "+50.00" },
+    "wti":    { "rate": "94.48", "chg": "+4.61" }
+  },
   "news": {
-    "markets": [
-      {
-        "src": "CNBC",
-        "key": "cnbc",
-        "title": "The research firm whose AI paper knocked the whole stock market is out with another big call",
-        "link": "https://www.cnbc.com/2026/03/25/the-firm-whose-ai-paper-knocked-the-whole-market-is-out-with-another-big-call.html",
-        "date": "Wed, 25 Mar 2026 16:49:06 GMT",
-        "title_zh": "The research firm whose AI paper knocked the whole stock market is out with another big call"
-      },
-      {
-        "src": "CNBC",
-        "key": "cnbc",
-        "title": "Former SEC Chair Jay Clayton says regulators would scrutinize trading ahead of Trump post",
-        "link": "https://www.cnbc.com/2026/03/25/former-sec-chair-jay-clayton-says-regulators-would-scrutinize-trading-ahead-of-trump-post.html",
-        "date": "Wed, 25 Mar 2026 15:21:44 GMT",
-        "title_zh": "Former SEC Chair Jay Clayton says regulators would scrutinize trading ahead of Trump post"
-      },
-      {
-        "src": "BBC Business",
-        "key": "bbc",
-        "title": "NS&I set to pay millions to customers over misplaced funds",
-        "link": "https://www.bbc.com/news/articles/c3w3eg4n9zwo?at_medium=RSS&at_campaign=rss",
-        "date": "Thu, 26 Mar 2026 08:33:25 GMT",
-        "title_zh": "NS&I set to pay millions to customers over misplaced funds"
-      },
-      {
-        "src": "BBC Business",
-        "key": "bbc",
-        "title": "Octopus boss: We've seen a 50% rise in solar panel sales since start of Iran war",
-        "link": "https://www.bbc.com/news/articles/c4gjlezq80no?at_medium=RSS&at_campaign=rss",
-        "date": "Thu, 26 Mar 2026 00:00:49 GMT",
-        "title_zh": "Octopus boss: We've seen a 50% rise in solar panel sales since start of Iran war"
-      }
-    ],
-    "world": [
-      {
-        "src": "BBC World",
-        "key": "bbc",
-        "title": "Who wants what and why from US-Iran peace talks?",
-        "link": "https://www.bbc.com/news/articles/cm29l9r68j8o?at_medium=RSS&at_campaign=rss",
-        "date": "Wed, 25 Mar 2026 21:37:34 GMT",
-        "title_zh": "Who wants what and why from US-Iran peace talks?"
-      },
-      {
-        "src": "BBC World",
-        "key": "bbc",
-        "title": "Prepare for turbulence - how a prolonged Middle East conflict could reshape how we fly",
-        "link": "https://www.bbc.com/news/articles/cn08x9lw0pzo?at_medium=RSS&at_campaign=rss",
-        "date": "Thu, 26 Mar 2026 00:41:16 GMT",
-        "title_zh": "Prepare for turbulence - how a prolonged Middle East conflict could reshape how we fly"
-      }
-    ],
-    "tech": [
-      {
-        "src": "TechCrunch",
-        "key": "techcrunch",
-        "title": "A little-known Croatian startup is coming for the robotaxi market with help from Uber",
-        "link": "https://techcrunch.com/2026/03/26/a-little-known-croatian-startup-is-coming-for-the-robotaxi-market-with-help-from-uber/",
-        "date": "Thu, 26 Mar 2026 08:15:00 +0000",
-        "title_zh": "A little-known Croatian startup is coming for the robotaxi market with help from Uber"
-      },
-      {
-        "src": "TechCrunch",
-        "key": "techcrunch",
-        "title": "The least surprising chapter of the Manus story is what’s happening right now",
-        "link": "https://techcrunch.com/2026/03/25/the-least-surprising-chapter-of-the-manus-story-is-whats-happening-right-now/",
-        "date": "Thu, 26 Mar 2026 02:46:48 +0000",
-        "title_zh": "The least surprising chapter of the Manus story is what’s happening right now"
-      },
-      {
-        "src": "VentureBeat",
-        "key": "vb",
-        "title": "Google's new TurboQuant algorithm speeds up AI memory 8x, cutting costs by 50% or more",
-        "link": "https://venturebeat.com/infrastructure/googles-new-turboquant-algorithm-speeds-up-ai-memory-8x-cutting-costs-by-50",
-        "date": "Wed, 25 Mar 2026 19:27:00 GMT",
-        "title_zh": "Google's new TurboQuant algorithm speeds up AI memory 8x, cutting costs by 50% or more"
-      },
-      {
-        "src": "VentureBeat",
-        "key": "vb",
-        "title": "Oracle converges the AI data stack to give enterprise agents a single version of truth",
-        "link": "https://venturebeat.com/data/oracle-converges-the-ai-data-stack-to-give-enterprise-agents-a-single",
-        "date": "Wed, 25 Mar 2026 19:00:00 GMT",
-        "title_zh": "Oracle converges the AI data stack to give enterprise agents a single version of truth"
-      },
-      {
-        "src": "Wired",
-        "key": "wired",
-        "title": "Saatva HD Mattress Review: A Solution for Heavy-Bodied Sleepers",
-        "link": "https://www.wired.com/review/saatva-hd-mattress/",
-        "date": "Thu, 26 Mar 2026 09:04:00 +0000",
-        "title_zh": "Saatva HD Mattress Review: A Solution for Heavy-Bodied Sleepers"
-      }
-    ],
-    "entertainment": [
-      {
-        "src": "Deadline",
-        "key": "deadline",
-        "title": "“Europe Has Forgotten How To Tell Its Own Story,” Says Impassioned Council Of Europe Chief As He Prepares To Bring Landmark Co-Pro Treaty Into Force At Series Mania",
-        "link": "https://deadline.com/2026/03/co-pro-treaty-signed-council-europe-tell-its-own-story-1236766518/",
-        "date": "Thu, 26 Mar 2026 09:41:38 +0000",
-        "title_zh": "“Europe Has Forgotten How To Tell Its Own Story,” Says Impassioned Council Of Europe Chief As He Prepares To Bring Landmark Co-Pro Treaty Into Force At Series Mania"
-      },
-      {
-        "src": "Deadline",
-        "key": "deadline",
-        "title": "Neal Street, Producer Behind Sam Mendes’ Beatles Movies, Hires Ex-Left Bank Development Chief For TV",
-        "link": "https://deadline.com/2026/03/neal-street-hires-developmen-ed-cripps-will-mortimer-tv-theater-1236766469/",
-        "date": "Thu, 26 Mar 2026 09:00:00 +0000",
-        "title_zh": "Neal Street, Producer Behind Sam Mendes’ Beatles Movies, Hires Ex-Left Bank Development Chief For TV"
-      },
-      {
-        "src": "Hollywood Reporter",
-        "key": "thr",
-        "title": "Finally, HBO Max Launches in the U.K. and Ireland",
-        "link": "https://www.hollywoodreporter.com/business/business-news/hbo-max-launches-uk-ireland-england-streamer-the-pitt-show-1236546795/",
-        "date": "Thu, 26 Mar 2026 09:31:15 +0000",
-        "title_zh": "Finally, HBO Max Launches in the U.K. and Ireland"
-      },
-      {
-        "src": "Hollywood Reporter",
-        "key": "thr",
-        "title": "Historic European Co-Production Agreement Unveiled at Series Mania",
-        "link": "https://www.hollywoodreporter.com/tv/tv-news/european-co-production-agreement-unveiled-at-series-mania-1236547724/",
-        "date": "Thu, 26 Mar 2026 08:30:00 +0000",
-        "title_zh": "Historic European Co-Production Agreement Unveiled at Series Mania"
-      },
-      {
-        "src": "Variety",
-        "key": "variety",
-        "title": "‘A Fire There,’ Set in a Remote Armenian Village, Boarded by Filmotor Ahead of Visions du Réel Premiere (EXCLUSIVE)",
-        "link": "https://variety.com/2026/film/news/a-fire-there-filmotor-visions-du-reel-1236700442/",
-        "date": "Thu, 26 Mar 2026 09:40:12 +0000",
-        "title_zh": "‘A Fire There,’ Set in a Remote Armenian Village, Boarded by Filmotor Ahead of Visions du Réel Premiere (EXCLUSIVE)"
-      }
-    ]
+    "markets": [],
+    "world": [],
+    "tech": [],
+    "entertainment": []
   }
 }
