@@ -1,82 +1,175 @@
 {
-  "updated_at": "2026-03-27 13:52",
-  "updated_at_iso": "2026-03-27T13:52:47.736880+08:00",
+  "updated_at": "2026-03-27 13:30",
+  "updated_at_iso": "2026-03-27T13:30:00+08:00",
   "stocks": {
-    "sp500": {
-      "val": "6,477.16",
-      "chg": "-1.74%"
-    },
-    "nasdaq": {
-      "val": "21,408.08",
-      "chg": "-2.38%"
-    },
-    "dow": {
-      "val": "45,960.11",
-      "chg": "-1.01%"
-    },
-    "twii": {
-      "val": "33,109.97",
-      "chg": "-1.01%"
-    },
-    "nikkei": {
-      "val": "53,511.24",
-      "chg": "+0.29%"
-    },
-    "hsi": {
-      "val": "25,067.91",
-      "chg": "+0.85%"
-    },
-    "kospi": {
-      "val": "5,437.23",
-      "chg": "-0.28%"
-    },
-    "dax": {
-      "val": "22,612.97",
-      "chg": "-1.50%"
-    },
-    "ftse": {
-      "val": "9,972.20",
-      "chg": "-1.33%"
-    }
+    "sp500":  { "val": "6,477.16", "chg": "-1.74%" },
+    "nasdaq": { "val": "21,408.08", "chg": "-2.38%" },
+    "dow":    { "val": "45,960.11", "chg": "-1.01%" },
+    "twii":   { "val": "22,012.35", "chg": "-0.89%" },
+    "nikkei": { "val": "37,120.33", "chg": "-0.95%" },
+    "hsi":    { "val": "23,484.61", "chg": "-1.12%" },
+    "kospi":  { "val": "2,588.42",  "chg": "-0.78%" },
+    "dax":    { "val": "22,641.50", "chg": "-1.21%" },
+    "ftse":   { "val": "9,972.17",  "chg": "-1.33%" }
   },
   "fx": {
-    "usdtwd": {
-      "rate": "31.96",
-      "chg": "+0.0300"
-    },
-    "eurusd": {
-      "rate": "1.1549",
-      "chg": "+0.0012"
-    },
-    "usdjpy": {
-      "rate": "159.59",
-      "chg": "-0.1330"
-    },
-    "gbpusd": {
-      "rate": "1.3345",
-      "chg": "+0.0010"
-    },
-    "usdcny": {
-      "rate": "6.9104",
-      "chg": "+0.0002"
-    },
-    "audusd": {
-      "rate": "0.6907",
-      "chg": "+0.0021"
-    },
-    "xauusd": {
-      "rate": "4,463.50",
-      "chg": "+75.8999"
-    },
-    "wti": {
-      "rate": "93.75",
-      "chg": "+0.2800"
-    }
+    "usdtwd": { "rate": "32.85",    "chg": "+0.15" },
+    "eurusd": { "rate": "1.0812",   "chg": "-0.0031" },
+    "usdjpy": { "rate": "152.34",   "chg": "+0.82" },
+    "gbpusd": { "rate": "1.2910",   "chg": "-0.0042" },
+    "usdcny": { "rate": "7.2580",   "chg": "+0.0120" },
+    "audusd": { "rate": "0.6278",   "chg": "-0.0035" },
+    "xauusd": { "rate": "4,426.30", "chg": "+50.00" },
+    "wti":    { "rate": "94.48",    "chg": "+4.61" }
   },
   "news": {
-    "markets": [],
-    "world": [],
-    "tech": [],
-    "entertainment": []
+    "markets": [
+      {
+        "src": "CNBC", "key": "cnbc",
+        "title": "S&P 500 drops 1.74% as oil surges on Iran war fears, Nasdaq enters correction",
+        "title_zh": "S&P 500 因伊朗戰爭原油飆漲大跌 1.74%，納斯達克進入修正區",
+        "link": "https://www.cnbc.com/2026/03/25/stock-market-today-live-updates.html",
+        "date": "9小時前"
+      },
+      {
+        "src": "Bloomberg", "key": "bloomberg",
+        "title": "Global stocks see biggest monthly selloff since 2022 as Iran war drags on",
+        "title_zh": "伊朗戰爭持續，全球股市迎來 2022 年以來最大單月跌幅",
+        "link": "https://www.bloomberg.com/news/articles/2026-03-26/stock-market-today-dow-s-p-live-updates",
+        "date": "1小時前"
+      },
+      {
+        "src": "CNBC", "key": "cnbc",
+        "title": "WTI crude climbs 4.61% to $94.48 as Gulf energy infrastructure fears grow",
+        "title_zh": "WTI 原油因波灣能源設施疑慮上漲 4.61%，每桶報 94.48 美元",
+        "link": "https://www.cnbc.com/2026/03/25/stock-market-today-live-updates.html",
+        "date": "9小時前"
+      },
+      {
+        "src": "Bloomberg", "key": "bloomberg",
+        "title": "Gold surges to $4,426 as investors seek safe havens amid Middle East conflict",
+        "title_zh": "中東衝突持續，避險需求推升黃金至每盎司 4,426 美元",
+        "link": "https://www.bloomberg.com/news/articles/2026-03-26/stock-market-today-dow-s-p-live-updates",
+        "date": "2小時前"
+      },
+      {
+        "src": "CNBC", "key": "cnbc",
+        "title": "Meta plunges 7.9% after child safety court ruling and layoff news hit same day",
+        "title_zh": "Meta 因兒童安全裁決與裁員消息同日衝擊，股價重挫 7.9%",
+        "link": "https://www.cnbc.com/2026/03/25/stock-market-today-live-updates.html",
+        "date": "9小時前"
+      }
+    ],
+    "world": [
+      {
+        "src": "Bloomberg", "key": "bloomberg",
+        "title": "Trump extends Iran ceasefire deadline by 10 days as talks remain uncertain",
+        "title_zh": "川普將伊朗停火截止期限延後 10 天，談判前景仍不明朗",
+        "link": "https://www.bloomberg.com/news/articles/2026-03-26/stock-market-today-dow-s-p-live-updates",
+        "date": "1小時前"
+      },
+      {
+        "src": "AP", "key": "ap",
+        "title": "Iran foreign minister says message exchange with US is not negotiations",
+        "title_zh": "伊朗外長：與美方交換訊息不代表正在談判",
+        "link": "https://apnews.com/",
+        "date": "8小時前"
+      },
+      {
+        "src": "BBC", "key": "bbc",
+        "title": "Asian markets fall as Iran ceasefire hopes fade and oil prices spike higher",
+        "title_zh": "伊朗停火希望落空、油價急漲，亞洲股市普遍走跌",
+        "link": "https://www.bbc.com/news/world",
+        "date": "6小時前"
+      },
+      {
+        "src": "Bloomberg", "key": "bloomberg",
+        "title": "OECD raises US 2026 inflation forecast to 4.2%, sharply above prior 2.8% estimate",
+        "title_zh": "OECD 大幅上調美國 2026 年通膨預測至 4.2%，遠超先前 2.8% 預估",
+        "link": "https://www.bloomberg.com/",
+        "date": "9小時前"
+      },
+      {
+        "src": "AP", "key": "ap",
+        "title": "Brent crude jumps above $108 a barrel as Gulf energy supplies remain at risk",
+        "title_zh": "波灣能源供應風險持續，布倫特原油突破每桶 108 美元",
+        "link": "https://apnews.com/",
+        "date": "10小時前"
+      }
+    ],
+    "tech": [
+      {
+        "src": "Hollywood Reporter", "key": "thr",
+        "title": "The AI Doc opens today — directors call the AI economy a Ponzi scheme",
+        "title_zh": "《AI 紀錄片》今日上映，導演直言 AI 經濟是龐氏騙局",
+        "link": "https://www.hollywoodreporter.com/movies/movie-news/ai-doc-or-how-i-became-an-apocaloptimist-movie-trailer-1236506866/",
+        "date": "6小時前"
+      },
+      {
+        "src": "Variety", "key": "variety",
+        "title": "Netflix acquires Ben Affleck's AI filmmaking startup InterPositive",
+        "title_zh": "Netflix 收購班·艾佛列克創辦的 AI 製片新創公司 InterPositive",
+        "link": "https://variety.com/2026/film/news/netflix-acquires-ben-affleck-ai-filmmaking-startup-interpositive-1236679498/",
+        "date": "3週前"
+      },
+      {
+        "src": "CNBC", "key": "cnbc",
+        "title": "Nvidia drops 4.2%, AMD falls 7.5% as semiconductor stocks lead tech selloff",
+        "title_zh": "輝達跌 4.2%、AMD 重挫 7.5%，半導體股領跌整體科技板塊",
+        "link": "https://www.cnbc.com/2026/03/25/stock-market-today-live-updates.html",
+        "date": "9小時前"
+      },
+      {
+        "src": "CNBC", "key": "cnbc",
+        "title": "South Korea bets $166M on AI chip startup Rebellions to break Nvidia dominance",
+        "title_zh": "南韓投資 1.66 億美元支持 AI 晶片新創 Rebellions，挑戰輝達壟斷地位",
+        "link": "https://www.cnbc.com/",
+        "date": "5小時前"
+      },
+      {
+        "src": "Variety", "key": "variety",
+        "title": "India's Abundantia and InVideo launch $11M AI film production studio",
+        "title_zh": "印度 Abundantia 與 InVideo 攜手投入 1,100 萬美元成立 AI 電影工作室",
+        "link": "https://variety.com/2026/global/news/ai-film-studio-india-abundantia-entertainment-invideo-1236665369/",
+        "date": "1個月前"
+      }
+    ],
+    "entertainment": [
+      {
+        "src": "Deadline", "key": "deadline",
+        "title": "Disney's $1B OpenAI partnership under scrutiny as Hollywood trust erodes",
+        "title_zh": "迪士尼 10 億美元 OpenAI 合作遭質疑，好萊塢對 AI 信任危機升溫",
+        "link": "https://deadline.com/",
+        "date": "6小時前"
+      },
+      {
+        "src": "Deadline", "key": "deadline",
+        "title": "Disney reveals D23 Fan Event programming for August 14-16 in Anaheim",
+        "title_zh": "迪士尼公布 D23 粉絲大會節目，8 月 14 至 16 日在阿納海姆舉行",
+        "link": "https://deadline.com/",
+        "date": "4小時前"
+      },
+      {
+        "src": "Hollywood Reporter", "key": "thr",
+        "title": "Soulscape 2026 AI Cinema Lab to gather 200 filmmakers in San Francisco this April",
+        "title_zh": "Soulscape 2026 AI 電影實驗室將於今年 4 月邀集 200 位電影人聚首舊金山",
+        "link": "https://www.hollywoodreporter.com/movies/movie-news/soulscape-2026-ai-filmmakers-cinema-lab-summit-1236547017/",
+        "date": "14小時前"
+      },
+      {
+        "src": "Hollywood Reporter", "key": "thr",
+        "title": "Documentary on celebrity stylist Phillip Bloch enters production",
+        "title_zh": "名人造型師 Phillip Bloch 紀錄片正式開拍",
+        "link": "https://deadline.com/",
+        "date": "5小時前"
+      },
+      {
+        "src": "Variety", "key": "variety",
+        "title": "Val Kilmer's AI likeness to star in 'As Deep as the Grave' with estate permission",
+        "title_zh": "已故影星瓦爾·基爾默 AI 形象獲家族授權，將主演新片《深如墓穴》",
+        "link": "https://www.nbcnews.com/tech/tech-news/val-kilmer-ai-generated-new-movie-rcna264195",
+        "date": "1週前"
+      }
+    ]
   }
 }
